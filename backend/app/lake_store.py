@@ -148,6 +148,10 @@ class LakeStore:
         # 归并中断恢复检查点：merge_id -> {partial_file_ids: [...], ...}
         self._merge_checkpoints: dict[str, dict[str, Any]] = {}
 
+        # 实际删除回执：每次物理删除扇出的一条不可变凭证
+        # {receipt_id, lake_table, file_id, file_bytes, removed, operator, created_at}
+        self._deletion_receipts: list[dict[str, Any]] = []
+
     # ---- 文件操作 ----
 
     def register_file(
@@ -184,6 +188,31 @@ class LakeStore:
                 del table_files[fid]
                 removed += 1
         return removed
+
+    def delete_file_with_receipt(
+        self, lake_table: str, file_id: str, operator: str = "",
+    ) -> dict[str, Any] | None:
+        """物理删除文件并留下删除回执；文件已不存在时返回 None，绝不伪造回执。"""
+        pf = self._files.get(lake_table, {}).get(file_id)
+        if pf is None:
+            return None
+        del self._files[lake_table][file_id]
+        receipt = {
+            "receipt_id": f"DEL-{file_id}",
+            "lake_table": lake_table,
+            "file_id": file_id,
+            "file_bytes": pf.file_bytes,
+            "file_rows": pf.file_rows,
+            "operator": operator,
+            "created_at": time.time(),
+        }
+        self._deletion_receipts.append(receipt)
+        return receipt
+
+    def list_deletion_receipts(self, lake_table: str | None = None) -> list[dict[str, Any]]:
+        if lake_table is None:
+            return list(self._deletion_receipts)
+        return [r for r in self._deletion_receipts if r["lake_table"] == lake_table]
 
     def replace_file_list(
         self, lake_table: str, old_file_ids: list[str], new_files: list[PartitionFile]

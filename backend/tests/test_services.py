@@ -1,4 +1,4 @@
-"""测试全部22个领域服务的真实业务逻辑。"""
+"""测试全部领域服务的真实业务逻辑（通用模块，回收凭据包见 test_reclaim.py）。"""
 from __future__ import annotations
 
 import pytest

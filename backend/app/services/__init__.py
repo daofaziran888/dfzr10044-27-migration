@@ -24,6 +24,8 @@ from app.services.retention_window import RetentionWindowService
 from app.services.publish_view import PublishViewService
 from app.services.quota_meter import QuotaMeterService
 from app.services.lake_audit import LakeAuditService
+from app.services.reclaim_package import ReclaimPackageService
+from app.services.reclaim_credential import ReclaimCredentialService, ReclaimOrderService
 
 SERVICES: dict[str, BaseModuleService] = {
     "lake_catalog": LakeCatalogService(),
@@ -48,6 +50,9 @@ SERVICES: dict[str, BaseModuleService] = {
     "publish_view": PublishViewService(),
     "quota_meter": QuotaMeterService(),
     "lake_audit": LakeAuditService(),
+    "reclaim_package": ReclaimPackageService(),
+    "reclaim_credential": ReclaimCredentialService(),
+    "reclaim_order": ReclaimOrderService(),
 }
 
 
